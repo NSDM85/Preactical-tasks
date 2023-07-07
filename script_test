@@ -1,0 +1,46 @@
+#!/bin/bash
+
+#Проверка наличия репозитория Backports и его добавление
+if ! grep -q "backports" /etc/apt/sources.list; then
+    echo "deb http://archive.ubuntu.com/ubuntu $(lsb_release -sc)-backports main restricted universe multiverse" | sudo tee -a /etc/apt/sources.list
+    echo "Репозиторий Backports добавлен"
+fi
+
+#Обновление пакетного менеджера
+sudo apt update
+
+#Установка и запуск Apache2
+sudo apt install -y apache2
+sudo systemctl start apache2
+
+#Установка Python
+sudo apt install -y python3
+
+#Установка и поднятие SSH-сервера
+sudo apt install -y openssh-server
+sudo systemctl start ssh
+
+#Создание вспомогательных скриптов/файлов
+echo "echo 'Hello, World!'" > hello.sh
+chmod +x hello.sh
+
+#Изменение конфигурации Apache2
+sudo sed -i 's/Listen 80/Listen 8080/g' /etc/apache2/ports.conf
+
+#Настройка прав доступа
+sudo chown -R $USER:$USER /var/www/html
+
+#Дополнительное действие 1: Создание директории для логов
+sudo mkdir /var/log/myapp
+
+#Дополнительное действие 2: Изменение прав доступа к директории
+sudo chmod 777 /var/log/myapp
+
+#Дополнительное действие 3: Создание файла index.html
+echo "<html><body><h1>Welcome to my website!</h1></body></html>" | sudo tee /var/www/html/index.html
+
+#Дополнительное действие 4: Изменение конфигурации SSH-сервера
+sudo sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin no/g' /etc/ssh/sshd_config
+sudo systemctl restart ssh
+
+echo "Скрипт выполнен успешно"
